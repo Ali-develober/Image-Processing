@@ -27,6 +27,16 @@ Both functions decide the output format from the file extension, so reading a `.
 
 Finally I printed the raw contents of both images, using the array returned by OpenCV directly and converting the PIL image with `np.array()` first. This confirmed that a digital image is stored as a matrix of numbers, where each value is the intensity of one pixel between 0 for black and 255 for white in an 8-bit image.
 
+## Operations on the Image Array with NumPy
+
+For the assessment I loaded the cameraman image again, this time with the `IMREAD_GRAYSCALE` flag so it was a single 512 × 512 array, and applied different NumPy operations to it.
+
+- **Information about the array.** The image holds 262 144 pixels using all 256 gray levels, with a mean of 118.3 and a standard deviation of 62. `argmin()` with `unravel_index()` located the darkest pixel at row 76, column 221.
+- **Indexing and slicing.** A slice such as `a[60:260, 160:360]` cropped a 200 × 200 region around the cameraman, and `a[::4, ::4]` kept every fourth row and column, giving a 128 × 128 sub-sampled image.
+- **Flipping and rotating.** Reversing an axis with `a[::-1, :]` flipped the image upside down and `a[:, ::-1]` mirrored it. I checked that this is exactly the same as `np.flipud()`, and that `np.rot90()` applied four times gives back the original.
+- **Arithmetic and logical operations.** `255 - a` produced the negative. Adding 80 to brighten the image made 34 304 pixels wrap around to dark values because of the `uint8` type, so I used `np.clip()` on a wider type instead. The comparison `a > 100` gave a boolean mask covering 71.5% of the image, which `np.where()` turned directly into a black and white image.
+- **Reshaping and statistics.** `ravel()` flattened the image into one long vector that reshaped back without any change. The mean of every row and column was computed with the `axis` argument, and `np.bincount()` gave the histogram, where the most frequent gray level was 13, the dark coat of the cameraman.
+
 ## Observations
 
 The two libraries do the same job but return different things, and this is the main practical difference to remember. OpenCV gives a NumPy array immediately, so it can be processed straight away, but the channels are in BGR order. Pillow gives an Image object that has to be converted with `np.array()` before any numerical work, but it reads the channels in the expected RGB order.
